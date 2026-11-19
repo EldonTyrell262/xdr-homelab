@@ -1,0 +1,15 @@
+# Zugangsdaten und Installationsdateien nie hochladen
+wazuh-install-files.tar
+wazuh-passwords.txt
+*.key
+*.pem
+*.pfx
+*.msi
+*.exe
+
+# Exporte mit Labordaten
+*.csv
+
+# Systemdateien
+.DS_Store
+Thumbs.db

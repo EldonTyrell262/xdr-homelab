@@ -1,0 +1,49 @@
+<!--
+  Eigene Wazuh-Regeln für das Labor.
+  Ablage auf dem Server: /var/ossec/etc/rules/local_rules.xml
+  Danach: sudo systemctl restart wazuh-manager
+  Testen ohne Neustart: sudo /var/ossec/bin/wazuh-logtest
+  Eigene Regel-IDs liegen im Bereich 100000 bis 120000.
+-->
+
+<group name="local,windows,powershell,">
+
+  <!-- PowerShell mit kodiertem Befehl: häufig zur Verschleierung genutzt -->
+  <rule id="100100" level="10">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\s-e(nc|ncodedcommand)?\s</field>
+    <description>PowerShell mit kodiertem Befehl gestartet: $(win.eventdata.commandLine)</description>
+    <mitre>
+      <id>T1059.001</id>
+      <id>T1027</id>
+    </mitre>
+  </rule>
+
+  <!-- PowerShell lädt Inhalte aus dem Internet und führt sie aus -->
+  <rule id="100101" level="10">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(downloadstring|invoke-webrequest|iwr\s).*(iex|invoke-expression)</field>
+    <description>PowerShell lädt Code aus dem Netz und führt ihn aus</description>
+    <mitre>
+      <id>T1059.001</id>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+
+</group>
+
+<group name="local,windows,authentication_failures,">
+
+  <!-- Viele fehlgeschlagene Anmeldungen für dasselbe Konto in kurzer Zeit -->
+  <rule id="100110" level="12" frequency="5" timeframe="120">
+    <if_matched_sid>60122</if_matched_sid>
+    <same_field>win.eventdata.targetUserName</same_field>
+    <description>Mindestens 5 fehlgeschlagene Anmeldungen in 2 Minuten für Konto $(win.eventdata.targetUserName)</description>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+  </rule>
+
+</group>
