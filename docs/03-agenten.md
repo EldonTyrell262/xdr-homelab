@@ -2,7 +2,7 @@
 
 ## Wazuh-Agent auf Windows 11
 
-Den passenden Installationsbefehl erzeugt das Dashboard selbst: **Agents management → Summary → Deploy new agent**. Dort Windows wählen, als Serveradresse `10.10.10.10` eintragen und den angezeigten PowerShell-Befehl auf `client01` als Administrator ausführen. So stimmt die Agentenversion immer mit dem Server überein.
+Den passenden Installationsbefehl erzeugt das Dashboard selbst: **Agents management → Summary → Deploy new agent**. Dort Windows wählen, als Serveradresse die IP von `wazuh01` eintragen (im Labor aktuell `172.17.71.77`) und den angezeigten PowerShell-Befehl auf `client01` als Administrator ausführen. So stimmt die Agentenversion immer mit dem Server überein.
 
 Danach den Dienst starten:
 
@@ -54,3 +54,28 @@ Set-ItemProperty -Path $key -Name EnableScriptBlockLogging -Value 1
 ## Notizen
 
 20.11.2026: Alte Windows-VMs unbrauchbar, Windows 11 Multi-Edition (Evaluierungsversion) als ISO für client01 heruntergeladen.
+
+**20.11.2026 – client01 eingerichtet und Agent verbunden**
+
+- Windows 11 (Edition Pro Education, Build 26300) als Generation-2-VM mit virtuellem TPM installiert, Computername `client01`, Netz: Hyper-V *Default Switch*.
+- Stolperstein beim Anlegen der VM: `Add-VMDvdDrive` wurde versehentlich mehrfach ausgeführt. Danach scheiterte `Set-VMFirmware -FirstBootDevice`, weil `Get-VMDvdDrive` mehrere Laufwerke zurückgab. Lösung:
+
+```powershell
+Get-VMDvdDrive -VMName client01 | Select-Object -Skip 1 | Remove-VMDvdDrive
+Set-VMFirmware -VMName client01 -FirstBootDevice (Get-VMDvdDrive -VMName client01 | Select-Object -First 1)
+```
+
+- Wazuh-Agent 4.14.10 installiert. Der erste Download mit `Invoke-WebRequest` brach mit einem Timeout ab. DNS war nicht die Ursache (`Resolve-DnsName` antwortete sofort), sondern die Fortschrittsanzeige von Windows PowerShell 5.1, die große Downloads stark verlangsamt. Lösung:
+
+```powershell
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.10-1.msi -OutFile $env:tmp\wazuh-agent
+msiexec.exe /i $env:tmp\wazuh-agent /q WAZUH_MANAGER='172.17.71.77' WAZUH_AGENT_NAME='client01'
+NET START Wazuh
+```
+
+- Ergebnis: `client01` ist als Agent 001 verbunden. Die Konfigurationsprüfung (SCA) nach **CIS Microsoft Windows 11 Enterprise Benchmark v3.0.0** lief sofort durch: 114 von 482 Prüfungen bestanden, 359 nicht bestanden, 9 nicht anwendbar – **Score 24 %**. Für eine frisch installierte, nicht gehärtete Windows-Installation ist das zu erwarten.
+
+![CIS-Konfigurationsprüfung für client01](img/02-sca-client01.png)
+
+Idee für später: einen Teil der Empfehlungen (z. B. Kennwortrichtlinien, Kontosperrung) per Gruppenrichtlinie umsetzen und die Veränderung des Scores dokumentieren.
