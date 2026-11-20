@@ -25,7 +25,7 @@ Aktuell hängen die VMs am Hyper-V-Standardswitch (*Default Switch*); ein eigene
 
 ## Stand
 
-Wazuh 4.14 läuft auf `wazuh01`. Der Windows-11-Client `client01` ist mit Agent und Sysmon angebunden; die erste CIS-Konfigurationsprüfung ergab 24 % (114 von 482 Prüfungen bestanden). Testszenario T1 (EICAR) wurde erkannt (Regel 62123, Stufe 12), T2 (Brute Force) über die eigene Korrelationsregel 100110 (Stufe 12). T3 wird gerade ausgewertet.
+Wazuh 4.14 läuft auf `wazuh01`. Der Windows-11-Client `client01` ist mit Agent und Sysmon angebunden; die erste CIS-Konfigurationsprüfung ergab 24 % (114 von 482 Prüfungen bestanden). Testszenario T1 (EICAR) wurde erkannt (Regel 62123, Stufe 12), T2 (Brute Force) über die eigene Korrelationsregel 100110 (Stufe 12). T3 (kodierte PowerShell) erkannte bereits die Standardregel 92057 (Stufe 12) – die eigene Regel 100100 griff nicht, das wird noch untersucht.
 
 ![Wazuh-Dashboard nach der Installation](docs/img/01-dashboard.png)
 
@@ -34,7 +34,7 @@ Wazuh 4.14 läuft auf `wazuh01`. Der Windows-11-Client `client01` ist mit Agent 
 | Zeitraum | Ziel | Status |
 | --- | --- | --- |
 | 19.–20.11.2026 | Projektgerüst, `wazuh01` mit RHEL 10, Wazuh 4.14 installiert, Fehleranalyse dokumentiert | erledigt |
-| bis 23.11.2026 | Windows-11-VM `client01`, Wazuh-Agent und Sysmon, Testszenarien T1–T3 | in Arbeit – VM, Agent, Sysmon, T1 und T2 erledigt (21.11.) |
+| 20.–21.11.2026 | Windows-11-VM `client01`, Wazuh-Agent und Sysmon, Testszenarien T1–T3 | erledigt (21.11.) |
 | 24.–30.11.2026 | Ticketsystem Zammad aufsetzen und einrichten (Gruppen, SLAs, Textbausteine, Wissensdatenbank) | geplant |
 | 1.–7.12.2026 | Anbindung Wazuh → Zammad, Tests mit automatischer Ticketerstellung; Sophos XDR (30 Tage) starten | geplant |
 | 8.–11.12.2026 | Vergleich Wazuh/Sophos XDR, eigene Erkennungsregeln testen, Fazit | geplant |
@@ -56,7 +56,7 @@ Wazuh 4.14 läuft auf `wazuh01`. Der Windows-11-Client `client01` ist mit Agent 
 - [x] 1. Hyper-V-Netz und VMs anlegen – `wazuh01` und `client01` laufen ([docs/01-architektur.md](docs/01-architektur.md))
 - [x] 2. Wazuh installieren ([docs/02-wazuh-installation.md](docs/02-wazuh-installation.md))
 - [x] 3. Agenten und Sysmon einrichten ([docs/03-agenten.md](docs/03-agenten.md))
-- [ ] 4. Testszenarien durchführen und dokumentieren – T1 und T2 erledigt ([docs/04-testszenarien.md](docs/04-testszenarien.md))
+- [x] 4. Testszenarien durchführen und dokumentieren ([docs/04-testszenarien.md](docs/04-testszenarien.md))
 - [ ] 5. Eigene Regeln testen ([rules/local_rules.xml](rules/local_rules.xml))
 - [ ] 6. Sophos XDR 30 Tage testen ([docs/05-sophos-xdr.md](docs/05-sophos-xdr.md))
 - [ ] 7. Vergleich und Fazit ([docs/06-vergleich.md](docs/06-vergleich.md))

@@ -12,7 +12,7 @@ Alle Szenarien werden mit [scripts/Invoke-LabTestScenario.ps1](../scripts/Invoke
 | --- | --- | --- | --- | --- | --- |
 | T1 | EICAR-Testdatei | – | Virenschutz-Fund | erkannt (Regel 62123, Stufe 12) | offen |
 | T2 | 6 fehlgeschlagene Anmeldungen | T1110 Brute Force | Regel 60122, eigene Regel 100110 | erkannt (60122 ×5, eigene Regel 100110, Stufe 12) | offen |
-| T3 | Kodierter PowerShell-Befehl | T1059.001, T1027 | Sysmon-Ereignis 1, eigene Regel 100100 | offen | offen |
+| T3 | Kodierter PowerShell-Befehl | T1059.001, T1027 | Sysmon-Ereignis 1, eigene Regel 100100 | erkannt durch Standardregel 92057 (Stufe 12); eigene Regel 100100 griff nicht | offen |
 
 „offen“ nach dem Test ersetzen durch: erkannt (Regel/Alarm), teilweise oder nicht erkannt.
 
@@ -44,7 +44,14 @@ Alle Szenarien werden mit [scripts/Invoke-LabTestScenario.ps1](../scripts/Invoke
 
 ### T3 – Kodierter PowerShell-Befehl
 
-- **Datum/Uhrzeit:**
-- **Erkannt durch:**
+- **Datum/Uhrzeit:** 21.11.2026, 00:32 Uhr
+- **Ausgelöst auf:** client01 (`Invoke-LabTestScenario.ps1 -Scenario EncodedPS -ConfirmLab`): PowerShell startet eine zweite PowerShell mit `-EncodedCommand` und einem harmlosen, Base64-kodierten Befehl
+- **Erkannt durch:** Sysmon (Ereignis 1, Prozessstart) über den Wazuh-Agenten
 - **Alarm/Regel-ID und Stufe:**
-- **Erkenntnis:**
+  - 00:32:28 – Standardregel **92029**, Stufe 6: „Powershell executed script from suspicious location“ (das Testskript liegt in `%TEMP%`)
+  - 00:32:29 – Standardregel **92057**, Stufe **12**: „Powershell.exe spawned a powershell process which executed a base64 encoded command“
+  - Die eigene Regel **100100** hat **nicht** ausgelöst.
+- **Screenshot:** ![Sysmon-Erkennungen zu T2 und T3 in Wazuh](img/t3-wazuh.png)
+- **Erkenntnis:** Wazuh erkennt kodierte PowerShell-Befehle bereits mit seinem mitgelieferten Regelwerk. Die eigene Regel 100100 setzt auf dieselben Sysmon-Ereignisse auf; da die spezifischere Standardregel 92057 das Ereignis bereits auswertet, kommt die eigene Regel nicht zum Zug. Bevor man eigene Regeln schreibt, lohnt sich also ein Blick in das vorhandene Regelwerk.
+- **Nebenbefund:** Das Testskript selbst erzeugt bei T2 weitere Sysmon-Alarme (Regeln 92004 und 92036, Stufe 3–4), weil PowerShell für jeden Anmeldeversuch `cmd.exe` und `net.exe` startet. Auch harmlose Verwaltungsskripte lösen also Alarme niedriger Stufe aus – ein Beispiel dafür, warum Schwellenwerte und Ausnahmen im Betrieb wichtig sind.
+- **Nächster Schritt:** Regel 100100 mit `wazuh-logtest` prüfen und als Ergänzung zu 92057 umbauen (z. B. als Kindregel mit `<if_sid>92057</if_sid>`), oder entfernen, wenn sie keinen Mehrwert bietet.
