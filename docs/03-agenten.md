@@ -53,4 +53,4 @@ Set-ItemProperty -Path $key -Name EnableScriptBlockLogging -Value 1
 
 ## Notizen
 
-_Hier eigene Beobachtungen festhalten._
+20.11.2026: Alte Windows-VMs unbrauchbar, Windows 11 Multi-Edition (Evaluierungsversion) als ISO für client01 heruntergeladen.
