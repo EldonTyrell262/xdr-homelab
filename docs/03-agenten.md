@@ -79,3 +79,11 @@ NET START Wazuh
 ![CIS-Konfigurationsprüfung für client01](img/02-sca-client01.png)
 
 Idee für später: einen Teil der Empfehlungen (z. B. Kennwortrichtlinien, Kontosperrung) per Gruppenrichtlinie umsetzen und die Veränderung des Scores dokumentieren.
+
+**21.11.2026 – Sysmon und zusätzliche Ereignisprotokolle**
+
+- Sysmon mit der Konfiguration von SwiftOnSecurity installiert, PowerShell-Skriptblockprotokollierung aktiviert und die drei Kanäle (Sysmon, PowerShell, Defender) in die `ossec.conf` des Agenten eingetragen.
+- Stolperstein: Der Konfigurationsblock wurde versehentlich zweimal angehängt. Der Agent meldete daraufhin `WARNING: (1958): Log file '…' is duplicated`. Lösung: einen der beiden Blöcke in `ossec.conf` löschen und den Dienst neu starten.
+- Kontrolle im Agentenprotokoll: `INFO: (1951): Analyzing event log: 'Microsoft-Windows-Sysmon/Operational'` (ebenso für PowerShell und Defender). Kurz darauf zeigte das Dashboard bereits Ereignisse der Gruppen `sysmon`, `powershell` und `windows_defender`.
+
+![Threat Hunting für client01](img/03-threat-hunting-client01.png)
