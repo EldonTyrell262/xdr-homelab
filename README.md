@@ -15,11 +15,17 @@ Ein Lernprojekt, in dem ich eine kleine Unternehmensumgebung unter Hyper-V aufba
 
 | VM | System | Ressourcen | Rolle |
 | --- | --- | --- | --- |
-| `wazuh01` | Red Hat Enterprise Linux 9 | 4 vCPU, 8 GB RAM, 60 GB | Wazuh-Server, Indexer, Dashboard |
+| `wazuh01` | Red Hat Enterprise Linux 10 | 4 vCPU, 8 GB RAM | Wazuh-Server, Indexer, Dashboard (Wazuh 4.14) |
 | `client01` | Windows 11 | 2 vCPU, 4–8 GB RAM, 64 GB | Arbeitsplatz mit Wazuh-Agent, Sysmon, später Sophos-Agent |
 | `srv01` (optional) | Windows Server 2022 | 2 vCPU, 4 GB RAM, 60 GB | Domänencontroller für realistische Anmeldeereignisse |
 
-Alle VMs hängen an einem internen Hyper-V-Switch mit NAT. Details: [docs/01-architektur.md](docs/01-architektur.md)
+Aktuell hängen die VMs am Hyper-V-Standardswitch (*Default Switch*); ein eigener interner Switch mit NAT ist geplant. Details: [docs/01-architektur.md](docs/01-architektur.md)
+
+## Stand
+
+Wazuh 4.14 läuft auf `wazuh01`, das Dashboard ist erreichbar. Als Nächstes folgt der Windows-Client mit Agent und Sysmon.
+
+![Wazuh-Dashboard nach der Installation](docs/img/01-dashboard.png)
 
 ## Inhalt
 
@@ -33,8 +39,8 @@ Alle VMs hängen an einem internen Hyper-V-Switch mit NAT. Details: [docs/01-arc
 
 ## Fortschritt
 
-- [ ] 1. Hyper-V-Netz und VMs anlegen ([docs/01-architektur.md](docs/01-architektur.md))
-- [ ] 2. Wazuh installieren ([docs/02-wazuh-installation.md](docs/02-wazuh-installation.md))
+- [ ] 1. Hyper-V-Netz und VMs anlegen – `wazuh01` läuft, `client01` folgt ([docs/01-architektur.md](docs/01-architektur.md))
+- [x] 2. Wazuh installieren ([docs/02-wazuh-installation.md](docs/02-wazuh-installation.md))
 - [ ] 3. Agenten und Sysmon einrichten ([docs/03-agenten.md](docs/03-agenten.md))
 - [ ] 4. Testszenarien durchführen und dokumentieren ([docs/04-testszenarien.md](docs/04-testszenarien.md))
 - [ ] 5. Eigene Regeln testen ([rules/local_rules.xml](rules/local_rules.xml))

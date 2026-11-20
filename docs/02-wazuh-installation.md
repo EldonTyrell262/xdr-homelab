@@ -6,7 +6,8 @@ Quelle: [Wazuh Quickstart](https://documentation.wazuh.com/current/quickstart.ht
 
 ## Voraussetzungen
 
-- RHEL 9 (64 Bit), feste IP 10.10.10.10, Hostname `wazuh01`
+- RHEL 9 oder 10 (64 Bit), Hostname `wazuh01` – im Labor eingesetzt: **RHEL 10**
+- System bei Red Hat registriert, damit die Paketquellen BaseOS und AppStream verfügbar sind
 - 4 vCPU, 8 GB RAM, mindestens 50 GB Speicher (Herstellerempfehlung für bis zu 25 Agenten)
 
 ## Installation
@@ -34,7 +35,7 @@ sudo firewall-cmd --reload
 
 ## Prüfen
 
-- Dashboard im Browser des Hosts öffnen: `https://10.10.10.10` (Zertifikatswarnung im Labor bestätigen)
+- Dashboard im Browser des Hosts öffnen: `https://<IP von wazuh01>` (Zertifikatswarnung im Labor bestätigen)
 - Dienste prüfen:
 
 ```bash
@@ -43,4 +44,38 @@ sudo systemctl status wazuh-manager wazuh-indexer wazuh-dashboard
 
 ## Notizen
 
-_Dauer der Installation, Fehlermeldungen und Lösungen hier festhalten._
+**20.11.2026 – Installation auf RHEL 10**
+
+Vorbereitung:
+
+```bash
+sudo hostnamectl set-hostname wazuh01
+free -h                               # 7,5 GiB RAM verfügbar
+```
+
+**Problem 1 – Namensauflösung:** `ping packages.wazuh.com` meldete „Name oder Dienst nicht bekannt“, `ping 8.8.8.8` funktionierte. Die Verbindung ins Internet stand also, nur DNS fehlte. `/etc/resolv.conf` zeigte als einzigen Nameserver das Gateway des Hyper-V-Default-Switch (172.17.64.1), das Anfragen nicht zuverlässig beantwortete.
+
+Lösung – DNS-Server fest für die Verbindung `eth0` setzen:
+
+```bash
+sudo nmcli connection modify eth0 ipv4.dns "1.1.1.1 8.8.8.8" ipv4.ignore-auto-dns yes
+sudo nmcli connection up eth0
+cat /etc/resolv.conf                  # nameserver 1.1.1.1 / 8.8.8.8
+```
+
+**Problem 2 – System nicht registriert:** `sudo subscription-manager status` meldete „Not registered“. Ohne Registrierung stehen die Red-Hat-Paketquellen nicht zur Verfügung, die der Installer für Abhängigkeiten braucht.
+
+Lösung – mit dem kostenlosen Red-Hat-Developer-Abo registrieren:
+
+```bash
+sudo subscription-manager register --username <Red-Hat-Benutzer>
+sudo dnf repolist                     # baseos-rpms und appstream-rpms vorhanden
+```
+
+**Installation und Firewall:** Danach liefen Installer und Firewall-Freigabe wie oben beschrieben ohne Fehler.
+
+Hinweis: Mehrere Befehle auf einmal in die SSH-Sitzung einzufügen, führte dazu, dass Zeilen zusammengezogen wurden (z. B. `--reload` wurde nicht ausgeführt). Befehle deshalb einzeln einfügen und die Ausgabe prüfen, etwa mit `sudo firewall-cmd --list-ports`.
+
+**Ergebnis:** Dashboard unter `https://172.17.71.77` erreichbar, Anmeldung als `admin` erfolgreich. Ohne angebundene Agenten zeigte das Dashboard bereits erste Ereignisse des Servers selbst.
+
+![Wazuh-Dashboard nach der Installation](img/01-dashboard.png)

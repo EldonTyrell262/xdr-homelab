@@ -43,4 +43,15 @@ client01 / srv01  --(Agent, TCP 1514/1515)-->  wazuh01  --(HTTPS 443)-->  Browse
 
 ## Notizen
 
-_Hier eigene Beobachtungen, Probleme und Lösungen festhalten._
+**20.11.2026 – Ist-Stand:** Für den Start hängt `wazuh01` am Hyper-V-Standardswitch (*Default Switch*) statt am geplanten `LabSwitch`.
+
+| Element | Wert |
+| --- | --- |
+| Switch | Hyper-V *Default Switch* (NAT, DHCP) |
+| Netz | 172.17.64.0/20 |
+| Gateway | 172.17.64.1 |
+| `wazuh01` | 172.17.71.77 (per DHCP) |
+
+- Vorteil: sofort einsatzbereit, kein eigener Switch nötig.
+- Nachteil: Der Default Switch vergibt Adressen per DHCP; nach einem Neustart des Hosts kann sich die IP ändern. Die Agenten brauchen aber eine feste Adresse des Servers. Deshalb ist der Umzug auf `LabSwitch` mit festen IPs (siehe oben) weiterhin geplant.
+- Der DNS-Dienst des Default Switch (172.17.64.1) hat Namen nur sehr langsam oder gar nicht aufgelöst. Lösung siehe [02-wazuh-installation.md](02-wazuh-installation.md#notizen).
