@@ -18,8 +18,9 @@ Ein Lernprojekt, in dem ich eine kleine Unternehmensumgebung unter Hyper-V aufba
 | `wazuh01` | Red Hat Enterprise Linux 9 | 4 vCPU, 8 GB RAM, 60 GB | Wazuh-Server, Indexer, Dashboard |
 | `client01` | Windows 11 | 2 vCPU, 4–8 GB RAM, 64 GB | Arbeitsplatz mit Wazuh-Agent, Sysmon, später Sophos-Agent |
 | `srv01` (optional) | Windows Server 2022 | 2 vCPU, 4 GB RAM, 60 GB | Domänencontroller für realistische Anmeldeereignisse |
+| `fw01` (optional) | OPNsense | 1–2 vCPU, 2 GB RAM, 20 GB | Router und Firewall zwischen Server-Netz und Client-Netz |
 
-Alle VMs hängen an einem internen Hyper-V-Switch mit NAT. Details: [docs/01-architektur.md](docs/01-architektur.md)
+Die VMs hängen zunächst an einem internen Hyper-V-Switch mit NAT. In der Ausbaustufe werden Server und Clients in getrennte Netze gelegt, die `fw01` verbindet. Details: [docs/01-architektur.md](docs/01-architektur.md)
 
 ## Inhalt
 
@@ -34,6 +35,7 @@ Alle VMs hängen an einem internen Hyper-V-Switch mit NAT. Details: [docs/01-arc
 ## Fortschritt
 
 - [ ] 1. Hyper-V-Netz und VMs anlegen ([docs/01-architektur.md](docs/01-architektur.md))
+- [ ] 1b. Ausbau: getrennte Netze mit Router/Firewall `fw01` ([docs/01-architektur.md](docs/01-architektur.md#ausbaustufe-getrennte-netze-mit-routerfirewall))
 - [ ] 2. Wazuh installieren ([docs/02-wazuh-installation.md](docs/02-wazuh-installation.md))
 - [ ] 3. Agenten und Sysmon einrichten ([docs/03-agenten.md](docs/03-agenten.md))
 - [ ] 4. Testszenarien durchführen und dokumentieren ([docs/04-testszenarien.md](docs/04-testszenarien.md))
