@@ -29,6 +29,17 @@ Wazuh 4.14 läuft auf `wazuh01`, das Dashboard ist erreichbar. Als Nächstes fol
 
 ![Wazuh-Dashboard nach der Installation](docs/img/01-dashboard.png)
 
+## Zeitplan
+
+| Zeitraum | Ziel | Status |
+| --- | --- | --- |
+| 19.–20.11.2026 | Projektgerüst, `wazuh01` mit RHEL 10, Wazuh 4.14 installiert, Fehleranalyse dokumentiert | erledigt |
+| bis 23.11.2026 | Windows-11-VM `client01`, Wazuh-Agent und Sysmon, Testszenarien T1–T3 | in Arbeit |
+| 24.–30.11.2026 | Ticketsystem Zammad aufsetzen und einrichten (Gruppen, SLAs, Textbausteine, Wissensdatenbank) | geplant |
+| 1.–7.12.2026 | Anbindung Wazuh → Zammad, Tests mit automatischer Ticketerstellung; Sophos XDR (30 Tage) starten | geplant |
+| 8.–11.12.2026 | Vergleich Wazuh/Sophos XDR, eigene Erkennungsregeln testen, Fazit | geplant |
+| 12.–18.12.2026 | Dokumentation abschließen: Architekturdiagramm, Ergebnisse, „Was ich gelernt habe“ | geplant |
+
 ## Inhalt
 
 | Ordner | Inhalt |
