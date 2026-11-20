@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Löst harmlose Testereignisse aus, um die Erkennung von Wazuh und Sophos XDR zu prüfen.
 

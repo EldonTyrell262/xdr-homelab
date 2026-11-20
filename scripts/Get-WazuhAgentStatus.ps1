@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Erstellt einen Statusbericht aller Wazuh-Agenten über die Wazuh-API.
 
