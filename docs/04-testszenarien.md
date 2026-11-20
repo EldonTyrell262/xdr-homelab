@@ -11,7 +11,7 @@ Alle Szenarien werden mit [scripts/Invoke-LabTestScenario.ps1](../scripts/Invoke
 | Nr. | Szenario | MITRE ATT&CK | Erwartete Erkennung | Wazuh | Sophos XDR |
 | --- | --- | --- | --- | --- | --- |
 | T1 | EICAR-Testdatei | – | Virenschutz-Fund | erkannt (Regel 62123, Stufe 12) | offen |
-| T2 | 6 fehlgeschlagene Anmeldungen | T1110 Brute Force | Regel 60122, eigene Regel 100110 | offen | offen |
+| T2 | 6 fehlgeschlagene Anmeldungen | T1110 Brute Force | Regel 60122, eigene Regel 100110 | erkannt (60122 ×5, eigene Regel 100110, Stufe 12) | offen |
 | T3 | Kodierter PowerShell-Befehl | T1059.001, T1027 | Sysmon-Ereignis 1, eigene Regel 100100 | offen | offen |
 
 „offen“ nach dem Test ersetzen durch: erkannt (Regel/Alarm), teilweise oder nicht erkannt.
@@ -33,10 +33,14 @@ Alle Szenarien werden mit [scripts/Invoke-LabTestScenario.ps1](../scripts/Invoke
 
 ### T2 – Fehlgeschlagene Anmeldungen
 
-- **Datum/Uhrzeit:**
-- **Erkannt durch:**
+- **Datum/Uhrzeit:** 21.11.2026, 00:29 Uhr
+- **Ausgelöst auf:** client01 (`Invoke-LabTestScenario.ps1 -Scenario FailedLogon -ConfirmLab`): sechs Anmeldeversuche mit falschem Passwort für das Konto `labtest-user`, jeweils im Abstand von etwa acht Sekunden
+- **Erkannt durch:** Windows-Sicherheitsprotokoll (Ereignis 4625) über den Wazuh-Agenten; Auswertung auf dem Server
 - **Alarm/Regel-ID und Stufe:**
-- **Erkenntnis:**
+  - 00:29:02 bis 00:29:43 – Regel **60122**, Stufe 5: „Logon Failure – Unknown user or bad password“
+  - 00:29:35 – eigene Regel **100110**, Stufe **12**: „Mindestens 5 fehlgeschlagene Anmeldungen in 2 Minuten für Konto labtest-user“ (MITRE ATT&CK T1110)
+- **Screenshot:** ![Alarme zu T2 in Wazuh](img/t2-wazuh.png)
+- **Erkenntnis:** Die eigene Korrelationsregel funktioniert: Beim fünften Fehlversuch innerhalb von zwei Minuten meldet Wazuh statt eines einzelnen Fehlversuchs (Stufe 5) einen Brute-Force-Verdacht (Stufe 12). Dieses fünfte Ereignis erscheint deshalb nicht mehr als 60122, sondern als 100110 – die Liste zeigt fünfmal 60122 und einmal 100110. Die Einzelereignisse allein wären im Alltag leicht zu übersehen; erst die Korrelation macht daraus einen klaren Alarm.
 
 ### T3 – Kodierter PowerShell-Befehl
 
