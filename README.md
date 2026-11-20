@@ -10,6 +10,7 @@ Ein Lernprojekt, in dem ich eine kleine Unternehmensumgebung unter Hyper-V aufba
 - Automatisierung mit PowerShell (Agentenbericht über die Wazuh-API, Testszenarien)
 - Bearbeitung von Vorfällen nach einem festen Ablauf (Playbook)
 - Vergleich einer Open-Source-Lösung mit einer kommerziellen XDR-Plattform
+- Ticketsystem Zammad: Alarme werden automatisch zu Tickets für die Bearbeitung im IT-Support
 
 ## Aufbau
 
@@ -17,6 +18,7 @@ Ein Lernprojekt, in dem ich eine kleine Unternehmensumgebung unter Hyper-V aufba
 | --- | --- | --- | --- |
 | `wazuh01` | Red Hat Enterprise Linux 10 | 4 vCPU, 8 GB RAM | Wazuh-Server, Indexer, Dashboard (Wazuh 4.14) |
 | `client01` | Windows 11 | 2 vCPU, 4–8 GB RAM, 64 GB | Arbeitsplatz mit Wazuh-Agent, Sysmon, später Sophos-Agent |
+| `zammad01` | Ubuntu Server 24.04 | 2 vCPU, 6 GB RAM, 40 GB | Ticketsystem Zammad |
 | `srv01` (optional) | Windows Server 2022 | 2 vCPU, 4 GB RAM, 60 GB | Domänencontroller für realistische Anmeldeereignisse |
 
 Aktuell hängen die VMs am Hyper-V-Standardswitch (*Default Switch*); ein eigener interner Switch mit NAT ist geplant. Details: [docs/01-architektur.md](docs/01-architektur.md)
@@ -36,6 +38,7 @@ Wazuh 4.14 läuft auf `wazuh01`, das Dashboard ist erreichbar. Als Nächstes fol
 | [rules/](rules/) | Eigene Wazuh-Erkennungsregeln |
 | [scripts/](scripts/) | PowerShell-Skripte für Bericht und Testszenarien |
 | [playbooks/](playbooks/) | Ablauf zur Bearbeitung von Sicherheitsvorfällen |
+| [integrations/](integrations/) | Anbindung Wazuh → Zammad |
 
 ## Fortschritt
 
@@ -46,6 +49,7 @@ Wazuh 4.14 läuft auf `wazuh01`, das Dashboard ist erreichbar. Als Nächstes fol
 - [ ] 5. Eigene Regeln testen ([rules/local_rules.xml](rules/local_rules.xml))
 - [ ] 6. Sophos XDR 30 Tage testen ([docs/05-sophos-xdr.md](docs/05-sophos-xdr.md))
 - [ ] 7. Vergleich und Fazit ([docs/06-vergleich.md](docs/06-vergleich.md))
+- [ ] 8. Ticketsystem Zammad aufbauen und an Wazuh anbinden ([docs/07-ticketsystem.md](docs/07-ticketsystem.md))
 
 ## Sicherheitshinweis
 

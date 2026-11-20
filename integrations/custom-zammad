@@ -1,0 +1,102 @@
+#!/var/ossec/framework/python/bin/python3
+# -*- coding: utf-8 -*-
+"""
+Wazuh-Integration: legt für Wazuh-Alarme automatisch ein Ticket in Zammad an.
+
+Wazuh ruft das Skript für jeden passenden Alarm mit drei Argumenten auf:
+  1. Pfad zu einer Datei mit dem Alarm im JSON-Format
+  2. api_key  (Zammad-Zugriffstoken, aus ossec.conf)
+  3. hook_url (Zammad-API, z. B. http://<zammad>:8080/api/v1/tickets)
+
+Ablage auf wazuh01:  /var/ossec/integrations/custom-zammad
+Rechte:              chown root:wazuh, chmod 750
+Konfiguration:       siehe docs/07-ticketsystem.md
+"""
+import json
+import sys
+import time
+
+import requests
+
+LOG = "/var/ossec/logs/integrations.log"
+GROUP = "IT-Sicherheit"                   # Zammad-Gruppe für Sicherheitsvorfälle
+CUSTOMER = "guess:wazuh@lab.local"        # Absender im Ticket; Zammad legt ihn bei Bedarf an
+
+
+def log(msg: str) -> None:
+    with open(LOG, "a", encoding="utf-8") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} custom-zammad: {msg}\n")
+
+
+def priority(level: int) -> str:
+    """Wazuh-Regelstufe (0-15) auf Zammad-Priorität abbilden."""
+    if level >= 12:
+        return "3 high"
+    if level >= 7:
+        return "2 normal"
+    return "1 low"
+
+
+def build_ticket(alert: dict) -> dict:
+    rule = alert.get("rule", {})
+    agent = alert.get("agent", {})
+    level = int(rule.get("level", 0))
+    mitre = ", ".join(rule.get("mitre", {}).get("id", [])) or "–"
+    title = f"[Wazuh {level}] {rule.get('description', 'Alarm')} – {agent.get('name', 'unbekannt')}"
+
+    body = "\n".join([
+        f"Zeitpunkt:     {alert.get('timestamp', '–')}",
+        f"Agent:         {agent.get('name', '–')} ({agent.get('ip', '–')})",
+        f"Regel:         {rule.get('id', '–')} (Stufe {level})",
+        f"Beschreibung:  {rule.get('description', '–')}",
+        f"MITRE ATT&CK:  {mitre}",
+        f"Gruppen:       {', '.join(rule.get('groups', [])) or '–'}",
+        "",
+        "Vollständiger Alarm:",
+        json.dumps(alert, indent=2, ensure_ascii=False)[:5000],
+    ])
+
+    return {
+        "title": title[:250],
+        "group": GROUP,
+        "customer_id": CUSTOMER,
+        "priority": priority(level),
+        "tags": f"wazuh,regel-{rule.get('id', '0')}",
+        "article": {
+            "subject": title[:250],
+            "body": body,
+            "type": "note",
+            "internal": False,
+        },
+    }
+
+
+def main() -> None:
+    if len(sys.argv) < 4:
+        log("Aufruf ohne ausreichende Argumente")
+        sys.exit(1)
+
+    alert_file, api_key, hook_url = sys.argv[1], sys.argv[2], sys.argv[3]
+    with open(alert_file, encoding="utf-8") as f:
+        alert = json.load(f)
+
+    ticket = build_ticket(alert)
+    resp = requests.post(
+        hook_url,
+        headers={"Authorization": f"Token token={api_key}", "Content-Type": "application/json"},
+        json=ticket,
+        timeout=10,
+    )
+    if resp.status_code in (200, 201):
+        log(f"Ticket angelegt: #{resp.json().get('number')} – {ticket['title']}")
+    else:
+        log(f"Fehler {resp.status_code}: {resp.text[:300]}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:  # Wazuh soll bei Fehlern nicht hängen bleiben
+        log(f"Ausnahme: {exc}")
+        sys.exit(1)
