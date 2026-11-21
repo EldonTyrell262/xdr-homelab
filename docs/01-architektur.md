@@ -71,3 +71,21 @@ New-NetNat -Name "LabNat" -InternalIPInterfaceAddressPrefix 10.10.10.0/24
 
 - Hinweis zum Testen: `ping 10.10.10.1` bleibt auch bei funktionierendem Netz ohne Antwort, weil die Windows-Firewall des Hosts eingehende Pings blockt. Aussagekräftiger ist `ping 1.1.1.1` bzw. `ping google.de` aus der VM.
 - Ergebnis: `client01` erreicht das Internet über `LabNat`. Als Nächstes folgt der Umzug von `wazuh01` auf `LabSwitch` (10.10.10.10).
+
+**21.11.2026 – `wazuh01` auf `LabSwitch` umgezogen, Host-IP nachgetragen**
+
+Damit Server und Agent im selben Netz liegen, wurde `wazuh01` vom *Default Switch* auf `LabSwitch` umgehängt und bekam die feste IP 10.10.10.10 (Gateway 10.10.10.1, DNS 1.1.1.1 und 8.8.8.8). Die Tabelle oben zum Ist-Stand vom 20.11.2026 ist damit überholt; das Netz entspricht jetzt der Planung.
+
+```powershell
+Connect-VMNetworkAdapter -VMName wazuh01 -SwitchName "LabSwitch"
+```
+
+- Problem: Der Host erreichte `wazuh01` weder per Ping noch per SSH. `Test-NetConnection 10.10.10.10 -Port 22` zeigte als Schnittstelle `vEthernet (Extern)` mit einer Absenderadresse aus dem externen Netz. Der Host kannte also keinen direkten Weg ins Labornetz.
+- Ursache: Die Host-Adresse 10.10.10.1 auf `vEthernet (LabSwitch)` fehlte. Lösung:
+
+```powershell
+New-NetIPAddress -IPAddress 10.10.10.1 -PrefixLength 24 -InterfaceAlias "vEthernet (LabSwitch)"
+```
+
+- Auf `wazuh01` geprüft, dass `firewalld` (Zone `public`) `ssh` und die Ports 443, 1514, 1515 und 55000/TCP erlaubt (`sudo firewall-cmd --list-all`).
+- Ergebnis: SSH vom Host auf `wazuh01` funktioniert, `wazuh01` erreicht das Internet über `LabNat`. Dass `ping 10.10.10.50` von `wazuh01` aus scheitert, ist erwartet: Die Windows-Firewall auf `client01` blockt eingehende Pings. Der Agent baut die Verbindung selbst zum Server auf.

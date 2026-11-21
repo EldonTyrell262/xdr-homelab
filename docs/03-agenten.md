@@ -2,7 +2,7 @@
 
 ## Wazuh-Agent auf Windows 11
 
-Den passenden Installationsbefehl erzeugt das Dashboard selbst: **Agents management → Summary → Deploy new agent**. Dort Windows wählen, als Serveradresse die IP von `wazuh01` eintragen (im Labor aktuell `172.17.71.77`) und den angezeigten PowerShell-Befehl auf `client01` als Administrator ausführen. So stimmt die Agentenversion immer mit dem Server überein.
+Den passenden Installationsbefehl erzeugt das Dashboard selbst: **Agents management → Summary → Deploy new agent**. Dort Windows wählen, als Serveradresse die IP von `wazuh01` eintragen (im Labor seit 21.11.2026 `10.10.10.10`, vorher `172.17.71.77`) und den angezeigten PowerShell-Befehl auf `client01` als Administrator ausführen. So stimmt die Agentenversion immer mit dem Server überein.
 
 Danach den Dienst starten:
 
@@ -87,3 +87,18 @@ Idee für später: einen Teil der Empfehlungen (z. B. Kennwortrichtlinien, Konto
 - Kontrolle im Agentenprotokoll: `INFO: (1951): Analyzing event log: 'Microsoft-Windows-Sysmon/Operational'` (ebenso für PowerShell und Defender). Kurz darauf zeigte das Dashboard bereits Ereignisse der Gruppen `sysmon`, `powershell` und `windows_defender`.
 
 ![Threat Hunting für client01](img/03-threat-hunting-client01.png)
+
+**21.11.2026 – Agent nach Neuaufbau von client01 neu verbunden**
+
+- `client01` neu installiert (siehe [01-architektur.md](01-architektur.md#notizen)), alter Agent 001 auf `wazuh01` mit `sudo /var/ossec/bin/manage_agents -r 001` entfernt.
+- Agent neu installiert, Serveradresse jetzt `10.10.10.10`:
+
+```powershell
+$ProgressPreference = 'SilentlyContinue'
+Invoke-WebRequest -Uri https://packages.wazuh.com/4.x/windows/wazuh-agent-4.14.10-1.msi -OutFile $env:tmp\wazuh-agent
+Start-Process msiexec.exe -Wait -ArgumentList "/i $env:tmp\wazuh-agent /q WAZUH_MANAGER=10.10.10.10 WAZUH_AGENT_NAME=client01"
+NET START Wazuh
+```
+
+- Stolperstein 1: `msiexec` läuft aus PowerShell heraus im Hintergrund weiter. Ein direkt folgendes `NET START Wazuh` meldete „Der Name für den Dienst ist ungültig“, weil die Installation noch nicht fertig war. Mit `Start-Process ... -Wait` wartet PowerShell auf das Ende.
+- Stolperstein 2: Die Befehle wurden zuerst versehentlich im PowerShell-Fenster des Hosts statt in der VM ausgeführt (erkennbar am Pfad `C:\Projekte\xdr-homelab`). Agent auf dem Host mit `msiexec.exe /x` wieder entfernt und den falschen Eintrag auf `wazuh01` gelöscht. Merke: Hyper-V-Befehle (`*-VM*`, `*-NetNat`) nur auf dem Host, Agenten-Befehle nur in der VM.
