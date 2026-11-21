@@ -55,3 +55,19 @@ client01 / srv01  --(Agent, TCP 1514/1515)-->  wazuh01  --(HTTPS 443)-->  Browse
 - Vorteil: sofort einsatzbereit, kein eigener Switch nötig.
 - Nachteil: Der Default Switch vergibt Adressen per DHCP; nach einem Neustart des Hosts kann sich die IP ändern. Die Agenten brauchen aber eine feste Adresse des Servers. Deshalb ist der Umzug auf `LabSwitch` mit festen IPs (siehe oben) weiterhin geplant.
 - Der DNS-Dienst des Default Switch (172.17.64.1) hat Namen nur sehr langsam oder gar nicht aufgelöst. Lösung siehe [02-wazuh-installation.md](02-wazuh-installation.md#notizen).
+
+**21.11.2026 – Fehlersuche: `client01` ohne Internet nach Neuaufbau**
+
+`client01` wurde neu aufgesetzt (VHDX jetzt auf der USB-SSD unter `D:\Hyper-V`), feste IP 10.10.10.50 am `LabSwitch`. Weder das Gateway noch Ziele im Internet waren erreichbar.
+
+- Ursache: Auf dem Host existierte noch ein älteres NAT `nat-outside` für 20.20.20.0/24 (Switch `nat-intern`, Host-IP 20.20.20.1), das keine VM mehr nutzte. Das NAT `LabNat` für 10.10.10.0/24 fehlte. Windows erlaubt pro Host nur ein NAT (`New-NetNat`), deshalb hatte das Labornetz keinen Weg nach außen.
+- Diagnose auf dem Host: `Get-NetNat`, `Get-NetIPAddress -AddressFamily IPv4`, `Get-VM | Get-VMNetworkAdapter | Select VMName, SwitchName, IPAddresses`
+- Lösung:
+
+```powershell
+Remove-NetNat -Name "nat-outside" -Confirm:$false
+New-NetNat -Name "LabNat" -InternalIPInterfaceAddressPrefix 10.10.10.0/24
+```
+
+- Hinweis zum Testen: `ping 10.10.10.1` bleibt auch bei funktionierendem Netz ohne Antwort, weil die Windows-Firewall des Hosts eingehende Pings blockt. Aussagekräftiger ist `ping 1.1.1.1` bzw. `ping google.de` aus der VM.
+- Ergebnis: `client01` erreicht das Internet über `LabNat`. Als Nächstes folgt der Umzug von `wazuh01` auf `LabSwitch` (10.10.10.10).
